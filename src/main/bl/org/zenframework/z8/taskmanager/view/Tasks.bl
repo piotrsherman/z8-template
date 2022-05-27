@@ -1,0 +1,66 @@
+import org.zenframework.z8.base.form.Listbox;
+import org.zenframework.z8.base.form.action.Action;
+import org.zenframework.z8.base.query.Query;
+import org.zenframework.z8.taskmanager.model.Task;
+import org.zenframework.z8.template.model.History;
+
+[entry]
+
+[request true]
+
+[displayName "Задачи"]
+
+
+public class Tasks extends Task {
+	
+	[icon "fa-trash"]
+	
+	[displayName "Очистить историю"]
+	
+	private Action clearHistory = class {
+		
+		virtual protected void execute(guid recordId, Query context, guid[] selected, Query query) {
+			
+			History history;
+			history.destroy(history.documentId == recordId);
+		}
+	};
+
+	
+	public History history;
+
+	history.status.name.editable = true;
+	history.user.name.editable = true;
+	history.description.editable = true;
+
+
+	status.name.dependencies = { historyList };
+	user.name.dependencies = { historyList };
+
+
+	[displayName "История"]
+	
+	private Listbox historyList;
+	
+	historyList.query = history;
+	
+	historyList.link = history.documentId;
+	
+	historyList.columns = { history.createdAt, history.status.name, history.user.name, history.description };
+	
+	historyList.colSpan = 4;
+	
+	historyList.flex = 1;
+
+	
+	[ui "org.zenframework.z8.template.controls.EMail"] email;
+
+	
+	names = { createdAt, fullName };
+	
+	controls = { createdAt, name, status.name, user.name, email, historyList };
+
+	columns = { createdAt, name, status.name, user.name };
+
+	actions = { clearHistory };
+}

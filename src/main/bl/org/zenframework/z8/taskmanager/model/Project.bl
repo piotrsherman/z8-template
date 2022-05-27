@@ -1,0 +1,15 @@
+import org.zenframework.z8.base.table.Table;
+
+[generatable]
+[name "Project"]
+[displayName "Проект"]
+public class Project extends Table{
+	
+	records{
+		[name "Первый проект"]
+		FirstProject = '784B256C-0093-430C-8E65-5F84D69F1287';
+		
+		[name "Второй проект"]
+		SecondProject = '3078341A-8AC3-4C92-A020-16F2AE7CCFE9';
+	}
+}

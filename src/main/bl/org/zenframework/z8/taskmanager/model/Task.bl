@@ -1,0 +1,53 @@
+import org.zenframework.z8.base.table.Table;
+import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.Link;
+import org.zenframework.z8.base.table.value.StringExpression;
+import org.zenframework.z8.base.table.value.StringField;
+
+[generatable]
+
+[name "Task"]
+
+
+public class Task extends Table {
+
+	public Project project;
+	[name "project"] public Link projectId = project;
+
+
+	public Status status;
+	[name "Status"] public Link statusId = status;
+
+	public Users user;
+	[name "User"] public Link userId = user;
+
+	[displayName "Создан"] createdAt;
+	[displayName "Задача"] name;
+	[displayName "Ответственный"] user.name;
+
+	[name "Email"]
+	[displayName "E-Mail"]
+	public StringField email;
+	email.length = 50;
+
+	[displayName "Задача"]
+	public StringExpression fullName = name + " - " + status.name + " (" + user.name + ")";
+
+	virtual protected void afterUpdate(guid recordId) {
+		super.afterUpdate(recordId);
+
+		if (!statusId.isChanged() && !userId.isChanged())
+			return;
+
+		History history;
+		
+		history.documentId = recordId;
+		
+		history.statusId = statusId.get();
+		
+		history.userId = userId.get();
+		
+		history.create();
+	}
+
+}
