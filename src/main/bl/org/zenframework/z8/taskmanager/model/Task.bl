@@ -41,7 +41,7 @@ public class Task extends Table {
 
 		History history;
 		
-		history.documentId = recordId;
+		history.taskId = recordId;
 		
 		history.statusId = statusId.get();
 		

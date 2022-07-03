@@ -1,16 +1,15 @@
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
 import org.zenframework.z8.base.table.value.Link;
-import org.zenframework.z8.taskmanager.model.Task;
 
 [generatable]
 
 [name "History"]
-
 public class History extends Table {
 
 	public Task task;
-	[name "Task"] public Link documentId = task;
+
+	[name "Task"] public Link taskId = task;
 
 	public Status status;
 	[name "Status"] public Link statusId = status;

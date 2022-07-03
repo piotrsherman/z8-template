@@ -2,7 +2,7 @@ import org.zenframework.z8.base.form.Listbox;
 import org.zenframework.z8.base.form.action.Action;
 import org.zenframework.z8.base.query.Query;
 import org.zenframework.z8.taskmanager.model.Task;
-import org.zenframework.z8.template.model.History;
+import org.zenframework.z8.taskmanager.model.History;
 
 [entry]
 
@@ -22,7 +22,7 @@ public class Tasks extends Task {
 		virtual protected void execute(guid recordId, Query context, guid[] selected, Query query) {
 			
 			History history;
-			history.destroy(history.documentId == recordId);
+			history.destroy(history.taskId == recordId);
 		}
 	};
 
@@ -44,7 +44,7 @@ public class Tasks extends Task {
 	
 	historyList.query = history;
 	
-	historyList.link = history.documentId;
+	historyList.link = history.taskId;
 	
 	historyList.columns = { history.createdAt, history.status.name, history.user.name, history.description };
 	
