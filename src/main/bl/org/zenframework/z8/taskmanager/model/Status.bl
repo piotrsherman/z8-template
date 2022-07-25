@@ -9,14 +9,14 @@ public class Status extends Table {
 	[displayName "Статус"] name;
 
 	records {
-		[name "Новый"]
-		New = '7CB8FA80-F5E8-4E17-93D8-39691F55E6A1';
+		[name "Новая"]
+		New = 'BA82DA79-E026-4DE2-AA41-7C5E0A821320';
 
 		[name "В работе"]
-		InWork = '302363A8-23F9-4A37-8137-403D19CFC441';
+		InWork = '6B54A703-C804-43EB-9E02-AAACD1290903';
 
-		[name "Исполнен"]
-		Done = 'E9C64CAC-FEE3-4EE2-BDB7-7F2094077754';
+		[name "Исполнена"]
+		Done = '3347743E-11C0-4079-8CDD-F632A82DE961';
 	}
 
 }

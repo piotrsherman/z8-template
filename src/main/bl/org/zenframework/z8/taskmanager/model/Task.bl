@@ -1,53 +1,44 @@
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.DatetimeField;
+import org.zenframework.z8.base.table.value.IntField;
 import org.zenframework.z8.base.table.value.Link;
-import org.zenframework.z8.base.table.value.StringExpression;
-import org.zenframework.z8.base.table.value.StringField;
 
 [generatable]
-
 [name "Task"]
-
-
-public class Task extends Table {
-
+public class Task extends Table{
+	
 	public Project project;
-	[name "project"] public Link projectId = project;
+	[name "Project"] public Link projectId = project;
 
-
+	public Users creator;
+	[name "Creator"] public Link creatorId = creator;
+	
+	public Users executor;
+	[name "Executor"] public Link executorId = executor;
+	
 	public Status status;
 	[name "Status"] public Link statusId = status;
-
-	public Users user;
-	[name "User"] public Link userId = user;
-
-	[displayName "Создан"] createdAt;
-	[displayName "Задача"] name;
-	[displayName "Ответственный"] user.name;
-
-	[name "Email"]
-	[displayName "E-Mail"]
-	public StringField email;
-	email.length = 50;
-
-	[displayName "Задача"]
-	public StringExpression fullName = name + " - " + status.name + " (" + user.name + ")";
-
-	virtual protected void afterUpdate(guid recordId) {
-		super.afterUpdate(recordId);
-
-		if (!statusId.isChanged() && !userId.isChanged())
-			return;
-
-		History history;
+	
+	[name "Difficulty"]
+	public IntField difficulty;
+	
+	[name "Deadline"]
+	public DatetimeField deadLine;
+	
+	[name "FinishedAt"]
+	public DatetimeField finishedAt;
+	
+	virtual protected void beforeCreate(guid recordId){
+		super.beforeCreate(recordId);
 		
-		history.taskId = recordId;
-		
-		history.statusId = statusId.get();
-		
-		history.userId = userId.get();
-		
-		history.create();
+		creatorId = user().id;
 	}
-
+	virtual protected void beforeUpdate(guid recordId){
+		if (statusId.isChanged()){
+			if (statusId.get() != Status.Done) 
+				finishedAt = date.Min;				
+			else finishedAt = date.now(); 
+		}
+	}
 }

@@ -1,24 +1,31 @@
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
 import org.zenframework.z8.base.table.value.Link;
+import org.zenframework.z8.base.table.value.StringField;
+import org.zenframework.z8.base.table.value.TextField;
 
 [generatable]
 
 [name "History"]
+
 public class History extends Table {
 
 	public Task task;
-
 	[name "Task"] public Link taskId = task;
-
-	public Status status;
-	[name "Status"] public Link statusId = status;
-
+	
 	public Users user;
 	[name "User"] public Link userId = user;
-
+	
+	[name "ChangedElement"]
+	[displayName "Измененный элемент"]
+	public StringField changedElement;
+	
+	[name "New"]
+	[displayName "Изменено на"]
+	public TextField newValue;
+	
 	[displayName "Дата"] createdAt;
-	[displayName "Примечание"] description;
-	[displayName "Ответствунный"] user.name;
+	[displayName "Автор"] user.name;
+	
 
 }

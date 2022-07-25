@@ -1,0 +1,29 @@
+import org.zenframework.z8.base.form.Listbox;
+import org.zenframework.z8.taskmanager.model.Project;
+
+[entry]
+[displayName "Проекты"]
+public class Projects extends Project {
+	
+	colCount = 2;
+	[displayName "Наименование"] name;
+	[displayName "Код"] shortName;
+	[displayName "Проект"] person.project.name;
+	[displayName "Код проекта"] person.project.shortName;
+	[displayName "Пользователь"] person.user.name;
+	
+	[displayName "Пользователи"]
+	private Listbox personList;
+	person.user.name.editable = true;
+	
+	personList.query = person;
+	personList.link = person.projectId;
+	personList.columns = {person.project.name,person.project.shortName,person.user.name};
+	personList.colSpan = 2;
+	personList.flex = 1;
+	personList.height = 2;
+	
+	names = {name};
+	controls = {name, shortName, personList};
+	columns = {name, shortName};
+}
