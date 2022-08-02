@@ -1,6 +1,8 @@
+import org.zenframework.z8.base.table.RecordLock;
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
 import org.zenframework.z8.base.table.value.DatetimeField;
+import org.zenframework.z8.base.table.value.Field;
 import org.zenframework.z8.base.table.value.IntField;
 import org.zenframework.z8.base.table.value.Link;
 
@@ -28,6 +30,37 @@ public class Task extends Table{
 	
 	[name "FinishedAt"]
 	public DatetimeField finishedAt;
+	
+	
+	
+	private void access(bool onUpdate){
+		guid userId = user().id;
+		read(Field[] {recordId,creatorId,executorId}, this.recordId == recordId);
+		while (next()){
+			if (user().isAdministrator())
+				userId = creatorId.get();
+			if (creatorId.get() != userId && executorId.get() != userId)
+				lock = RecordLock.Full;
+			else if (creatorId.get() != userId && executorId.get() == userId)
+				lock = RecordLock.Destroy;
+			else lock = RecordLock.None;
+			if (onUpdate)
+				update(recordId.get());
+		}
+	}
+	
+	virtual protected void onReadAction(){	
+		super.onReadAction();
+		
+		
+		access(true);
+	}
+	virtual protected void onUpdateAction(guid recordId){
+		super.onUpdateAction(recordId);
+		
+		access(false);
+	}
+	
 	
 	virtual protected void beforeCreate(guid recordId){
 		super.beforeCreate(recordId);

@@ -1,4 +1,6 @@
 import org.zenframework.z8.base.table.Table;
+import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.Join;
 
 [generatable]
 [name "Project"]
@@ -6,5 +8,18 @@ import org.zenframework.z8.base.table.Table;
 public class Project extends Table{
 	
 	public Person person;
+	
+	
+	public Join personJoin = class {
+		virtual protected sql_bool expression(){
+			return container.recordId == (sql_guid)container.person.projectId;
+		}
+	};
+	personJoin = person;
+	
+	virtual protected void beforeRead(){
+		if (user().id != Users.Administrator)
+			addWhere(user().id == person.userId);
+	}
 
 }
