@@ -27,5 +27,6 @@ public class History extends Table {
 	[displayName "Дата"] createdAt;
 	[displayName "Автор"] user.name;
 	
+	
 
 }

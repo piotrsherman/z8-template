@@ -9,17 +9,19 @@ public class Project extends Table{
 	
 	public Person person;
 	
-	
 	public Join personJoin = class {
 		virtual protected sql_bool expression(){
-			return container.recordId == (sql_guid)container.person.projectId;
+			return container.recordId == (sql_guid)container.person.projectId;//соединение записи проекта и записи проекта у person
 		}
 	};
+
 	personJoin = person;
 	
 	virtual protected void beforeRead(){
-		if (user().id != Users.Administrator)
-			addWhere(user().id == person.userId);
+		super.beforeRead();
+		if (user().id != Users.Administrator){
+			addWhere(user().id == person.userId);//если пользователь не является администратором, вывести только те проекты, с которыми связан этот пользователь
+		}
 	}
-
+	
 }

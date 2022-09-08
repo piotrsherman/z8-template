@@ -1,9 +1,10 @@
-import org.zenframework.z8.base.table.RecordLock;
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.Aggregation;
 import org.zenframework.z8.base.table.value.DatetimeField;
 import org.zenframework.z8.base.table.value.Field;
 import org.zenframework.z8.base.table.value.IntField;
+import org.zenframework.z8.base.table.value.Join;
 import org.zenframework.z8.base.table.value.Link;
 
 [generatable]
@@ -31,47 +32,40 @@ public class Task extends Table{
 	[name "FinishedAt"]
 	public DatetimeField finishedAt;
 	
+	[name "Id"]
+	public IntField id;
+	id.defaultValue = 0;
 	
+	Person person;
 	
-	private void access(bool onUpdate){
-		guid userId = user().id;
-		read(Field[] {recordId,creatorId,executorId}, this.recordId == recordId);
-		while (next()){
-			if (user().isAdministrator())
-				userId = creatorId.get();
-			if (creatorId.get() != userId && executorId.get() != userId)
-				lock = RecordLock.Full;
-			else if (creatorId.get() != userId && executorId.get() == userId)
-				lock = RecordLock.Destroy;
-			else lock = RecordLock.None;
-			if (onUpdate)
-				update(recordId.get());
+	public Join personJoin = class {
+		virtual protected sql_bool expression(){
+			return container.projectId == (sql_guid)container.person.projectId;
 		}
-	}
+	};
 	
-	virtual protected void onReadAction(){	
-		super.onReadAction();
-		
-		
-		access(true);
-	}
-	virtual protected void onUpdateAction(guid recordId){
-		super.onUpdateAction(recordId);
-		
-		access(false);
-	}
+	personJoin = person;
+
 	
-	
-	virtual protected void beforeCreate(guid recordId){
-		super.beforeCreate(recordId);
-		
+  	virtual protected void beforeCreate(guid recordId) {
+    	super.beforeCreate(recordId);
+
 		creatorId = user().id;
-	}
+		
+	    Task task;
+	    task.id.aggregation = Aggregation.Max;
+	    if (!task.aggregate(Field[] { task.id }))
+	    	throw "Error";
+	
+	    id = task.id.get() + 1;
+    }
+    
+    
 	virtual protected void beforeUpdate(guid recordId){
 		if (statusId.isChanged()){
 			if (statusId.get() != Status.Done) 
-				finishedAt = date.Min;				
+				finishedAt = date.Min;			
 			else finishedAt = date.now(); 
 		}
-	}
+	}	
 }

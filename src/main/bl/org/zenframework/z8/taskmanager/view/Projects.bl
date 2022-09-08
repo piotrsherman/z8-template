@@ -1,4 +1,6 @@
 import org.zenframework.z8.base.form.Listbox;
+import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.Field;
 import org.zenframework.z8.taskmanager.model.Project;
 
 [entry]
@@ -12,13 +14,36 @@ public class Projects extends Project {
 	[displayName "Код проекта"] person.project.shortName;
 	[displayName "Пользователь"] person.user.name;
 	
+	virtual protected void onCreateAction(guid recordId){
+		super.onCreateAction(recordId);
+		
+		if(user().id != Users.Administrator)
+			throw "Редактировать проекты может только администратор";
+	}
+	
+	virtual protected void onUpdateAction(guid recordId){
+		super.onUpdateAction(recordId);
+		
+		if(user().id != Users.Administrator)
+			throw "С проектами работает только администратор";
+	}
+
+	
+	virtual protected void onDestroyAction(guid recordId){
+		super.onDestroyAction(recordId);
+		
+		person.read(Field[] {person.projectId},person.projectId == recordId);
+		while(person.next()){
+			person.destroy(person.projectId == recordId);
+		}
+	}
+	
 	[displayName "Пользователи"]
 	private Listbox personList;
-	person.user.name.editable = true;
 	
 	personList.query = person;
 	personList.link = person.projectId;
-	personList.columns = {person.project.name,person.project.shortName,person.user.name};
+	personList.columns = {person.user.name};
 	personList.colSpan = 2;
 	personList.flex = 1;
 	personList.height = 2;
