@@ -1,27 +1,34 @@
 import org.zenframework.z8.base.table.Table;
 import org.zenframework.z8.base.table.system.Users;
+import org.zenframework.z8.base.table.value.Field;
 import org.zenframework.z8.base.table.value.Join;
 
 [generatable]
 [name "Project"]
 [displayName "Проект"]
 public class Project extends Table{
-	
+
 	public Person person;
-	
+
 	public Join personJoin = class {
-		virtual protected sql_bool expression(){
-			return container.recordId == (sql_guid)container.person.projectId;//соединение записи проекта и записи проекта у person
+		virtual protected sql_bool expression() {
+			return container.recordId == (sql_guid) container.person.projectId; // соединение записи проекта и записи проекта у person
 		}
 	};
 
 	personJoin = person;
-	
-	virtual protected void beforeRead(){
+
+	virtual protected void beforeRead() {
 		super.beforeRead();
-		if (user().id != Users.Administrator){
-			addWhere(user().id == person.userId);//если пользователь не является администратором, вывести только те проекты, с которыми связан этот пользователь
-		}
+		if (user().id != Users.Administrator)
+			addWhere(user().id == person.userId); // если пользователь не является администратором, вывести только те проекты, с которыми связан этот пользователь
 	}
-	
+
+	virtual protected void beforeDestroy(guid recordId) {
+		super.beforeDestroy(recordId);
+
+		person.read(Field[] { person.projectId },person.projectId == recordId);
+		while(person.next())
+			person.destroy(person.projectId == recordId);
+	}
 }

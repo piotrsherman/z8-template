@@ -2,15 +2,16 @@ import org.zenframework.z8.base.form.Listbox;
 import org.zenframework.z8.base.form.Tab;
 import org.zenframework.z8.base.form.TabControl;
 import org.zenframework.z8.base.table.Table;
+import org.zenframework.z8.base.table.value.DatetimeField;
 import org.zenframework.z8.base.table.value.Field;
-import org.zenframework.z8.base.table.value.GuidField;
+import org.zenframework.z8.base.table.value.Link;
 import org.zenframework.z8.taskmanager.model.History;
 import org.zenframework.z8.taskmanager.model.Task;
 
 [entry]
 [displayName "Задачи"]
 public class Tasks extends Task {
-	
+
 	[displayName "Наименование"] name;
 	[displayName "Проект"] project.name;
 	[displayName "Описание"] description;
@@ -20,135 +21,99 @@ public class Tasks extends Task {
 	[displayName "Создатель"] creator.name;
 	[displayName "Исполнитель"] executor.name;
 	[displayName "Идентификатор"] id;
-	
-	
-	
-	
+
+	description.flex = 1;
+	finishedAt.readOnly = true;
+
 	public History history;
 	[displayName "История изменений"] private Listbox historyList;
-	
-	
+
 	historyList.query = history;
 	historyList.link = history.taskId;
 	historyList.columns = { history.createdAt, history.user.name, history.changedElement, history.newValue};
 	historyList.sortFields = { history.createdAt };
-	
-
-	description.flex = 1;
 	historyList.colSpan = 2;
 	historyList.flex = 1;
-	
-	
-	finishedAt.readOnly = true;
-	
+
 	virtual protected void beforeRead(){
 		super.beforeRead();
-		
+
 		addWhere(user().id == project.person.userId);
 	}
-	
-	virtual protected string[] getNameValue(Table table,GuidField id){
-		table.readRecord(id.get(),Field[] {table.name});
-		return {table.name.displayName(),table.name.get()};
-	}
-	 virtual protected void afterUpdate(guid recordId) {
+
+	virtual protected void afterUpdate(guid recordId) {
 		super.afterUpdate(recordId);
-		
+
 		if (description.isChanged())
 			return;
-		
+
 		History history;
 		history.taskId = recordId;
 		history.userId = user().id;
-		
-		
-		Field[] elements = {name, id, difficulty, deadLine, projectId, statusId, creatorId, executorId};
-		
-		Table[] tables = {project, status, creator, executor};
-		
-		for (int i = 0;i < elements.size(); i += 1){
-			
-			if (elements[i].isChanged()){
-				
-				string className = elements[i].className();
-				
-				if (className.substring(className.lastIndexOf(".")+1) != "Link"){
-					history.changedElement = elements[i].displayName();
-					
-					if (elements[i] != deadLine)
-						history.newValue = (elements[i].toString() != "0" ) ? elements[i].toString(): "" ;
-					else
-						history.newValue = (deadLine.get() != date.Min) ? 
-										deadLine.get().toString("dd.MM.YYYY hh:mm") : "";
-				}else{
-					string[] NameValue = getNameValue(tables[i-4],(GuidField)elements[i]);//у массива tables размерноесть 4, на 4 меньше чем размерность массива elements, поэтому инкремент tables = инкремент elements минус 4 
-					history.changedElement = NameValue[0];//в первом элементе массива NameValue название измененного поля
-					history.newValue = NameValue[1];//во второом новое значение поля
+
+		for (Field field : primaryFields()) {
+			if (!field.isChanged())
+				continue;
+
+			if (field instanceof Link) {
+				Link link = (Link) field;
+				Table table = linkedTables[link];
+				if (!table.readRecord(link.get(), Field[] { table.name }))
+					throw "Запись '" + link.get() + "' в таблице " + table.name() + " не существует";
+				history.changedElement = table.name.displayName();
+				history.newValue = table.name.get();
+
+			} else {
+				history.changedElement = field.displayName();
+				if (field instanceof DatetimeField) {
+					DatetimeField datetimeField = (DatetimeField) field;
+					history.newValue = datetimeField.get() != date.Min ? datetimeField.get().toString("dd.MM.YYYY hh:mm") : "";
+				} else {
+					history.newValue = field.toString();
 				}
-							
 			}
 		}
 
-			if (history.changedElement.get() != ""){
-				history.create();
-			}
+		history.create();
 	}
 
-
-	virtual protected void onUpdateAction(guid recordId){
+	virtual protected void onUpdateAction(guid recordId) {
 		super.onUpdateAction(recordId);
-		
-		if(!readRecord(recordId, Field[] {this.executorId, this.creatorId}))
-			throw "Error";
-			
-		guid executorId = this.executorId.get();
-		guid creatorId = this.creatorId.get();
-		
-		if(creatorId != user().id && executorId != user().id)
+
+		if(!readRecord(recordId, Field[] { executorId, creatorId }))
+			throw "Задача '" + recordId + "' не существует";
+	
+		if(creatorId.get() != user().id && executorId.get() != user().id)
 			throw "Рекдактировать задачу может только создатель или исполнитлель";
 	}
-	
-	
-	
-	virtual protected void onDestroyAction(guid recordId){
+
+	virtual protected void onDestroyAction(guid recordId) {
 		super.onDestroyAction(recordId);
-		
-		if(!readRecord(recordId, Field[] {this.executorId, this.creatorId}))
-			throw "Error";
-			
-		
-		guid executorId = this.executorId.get();
-		guid creatorId = this.creatorId.get();
-		
-		if(creatorId != user().id)
+
+		if(!readRecord(recordId, Field[] { executorId, creatorId }))
+			throw "Задача '" + recordId + "' не существует";
+
+		if(creatorId.get() != user().id)
 			throw "Удалить задачу может только создатель";
-			
-		
-		
-		history.read(Field[] {history.taskId},history.taskId == recordId);
-		while(history.next()){
-			history.destroy(history.taskId == recordId);
-		}
+
+		history.destroy(history.taskId == recordId);
 	}
-	
+
 	[displayName "История"]
 	public Tab historyTab;
 	historyTab.controls = { historyList } ;
-	
+
 	[displayName "Задача"]
 	public Tab taskTab;	
 	taskTab.controls = { name, id, project.name, status.name, difficulty, deadLine, finishedAt, creator.name, executor.name, description } ;
 	taskTab.flex = 2;
-	
-	
+
 	public TabControl taskTabs;
 	taskTabs.tabs = { taskTab, historyTab };
 	taskTabs.flex = 1;
 	colCount = 1;
-	
+
 	names = { id, name };
 	controls = { taskTabs };
-	
 	columns = { name, project.name, status.name, difficulty, deadLine, finishedAt, creator.name, executor.name };
-	
 }

@@ -1,9 +1,7 @@
 import org.zenframework.z8.base.table.Table;
 
 [generatable]
-
 [name "Status"]
-
 public class Status extends Table {
 
 	[displayName "Статус"] name;

@@ -5,10 +5,10 @@ import org.zenframework.z8.base.table.value.Link;
 [generatable]
 [name "Person"]
 public class Person extends Table{
-	
+
 	public Project project;
 	[name "Project"] public Link projectId = project;
-	
+
 	public Users user;
 	[name "User"] public Link userId = user;
 }

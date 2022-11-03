@@ -9,63 +9,60 @@ import org.zenframework.z8.base.table.value.Link;
 
 [generatable]
 [name "Task"]
-public class Task extends Table{
-	
+public class Task extends Table {
+
 	public Project project;
 	[name "Project"] public Link projectId = project;
 
 	public Users creator;
 	[name "Creator"] public Link creatorId = creator;
-	
+
 	public Users executor;
 	[name "Executor"] public Link executorId = executor;
-	
+
 	public Status status;
 	[name "Status"] public Link statusId = status;
-	
+
 	[name "Difficulty"]
 	public IntField difficulty;
-	
+
 	[name "Deadline"]
 	public DatetimeField deadLine;
-	
+
 	[name "FinishedAt"]
 	public DatetimeField finishedAt;
-	
+
 	[name "Id"]
 	public IntField id;
 	id.defaultValue = 0;
-	
+
 	Person person;
-	
 	public Join personJoin = class {
-		virtual protected sql_bool expression(){
-			return container.projectId == (sql_guid)container.person.projectId;
+		virtual protected sql_bool expression() {
+			return container.projectId == (sql_guid) container.person.projectId;
 		}
 	};
-	
 	personJoin = person;
 
-	
-  	virtual protected void beforeCreate(guid recordId) {
-    	super.beforeCreate(recordId);
+	public Table[Link] linkedTables = { (projectId, project), (statusId, status), (creatorId, creator), (executorId, executor) };
+
+	virtual protected void beforeCreate(guid recordId) {
+		super.beforeCreate(recordId);
 
 		creatorId = user().id;
-		
-	    Task task;
-	    task.id.aggregation = Aggregation.Max;
-	    if (!task.aggregate(Field[] { task.id }))
-	    	throw "Error";
-	
-	    id = task.id.get() + 1;
-    }
-    
-    
-	virtual protected void beforeUpdate(guid recordId){
-		if (statusId.isChanged()){
-			if (statusId.get() != Status.Done) 
-				finishedAt = date.Min;			
-			else finishedAt = date.now(); 
-		}
-	}	
+
+		Task task;
+		task.id.aggregation = Aggregation.Max;
+		if (!task.aggregate(Field[] { task.id }))
+			throw "Error";
+
+		id = task.id.get() + 1;
+	}
+
+	virtual protected void beforeUpdate(guid recordId) {
+		super.beforeUpdate(recordId);
+
+		if (statusId.isChanged())
+			finishedAt = statusId.get() != Status.Done ? date.Min : date.now();
+	}
 }

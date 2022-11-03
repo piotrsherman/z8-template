@@ -1,7 +1,7 @@
 [displayName "Мои задачи"]
 [entry]
 public class MyTasks extends Tasks{
-	
+
 	virtual protected void beforeRead() {
 		super.beforeRead();
 

@@ -9,33 +9,33 @@ import org.zenframework.z8.taskmanager.model.Task;
 [displayName "Статистика"]
 [presentation "table"]
 public class Statistics extends Users{
-	
+
 	[displayName "Имя пользователя"] name;
 	public Task task;
-	public Join taskJoin = class{
-
-		virtual protected sql_bool expression(){
+	public Join taskJoin = class {
+		virtual protected sql_bool expression() {
 			return container.recordId == (sql_guid) container.task.creatorId || container.recordId == (sql_guid) container.task.executorId;
 		}
 	};
 	taskJoin = task;
-	
+
 	[displayName "Всего"]
-	public IntExpression count = (countExecutor != 0 || countCreator != 0).IIF(1,0);
-	
+	public IntExpression count = (countExecutor != 0 || countCreator != 0).IIF(1, 0);
+
 	[displayName "Созданных"]
-	public IntExpression countCreator = ((sql_guid)task.creatorId == recordId).IIF(1,0);
-	
+	public IntExpression countCreator = ((sql_guid)task.creatorId == recordId).IIF(1, 0);
+
 	[displayName "Выполненных"]
-	public IntExpression countExecutor = (task.deadLine != date.Min && (sql_guid)task.executorId == recordId).IIF(1,0);
-	
-	public IntExpression inTime = ((sql_guid)task.executorId == recordId && task.finishedAt.sql_date().truncMinute() <= task.deadLine && task.deadLine != date.Min).IIF(1,0);
+	public IntExpression countExecutor = (task.deadLine != date.Min && (sql_guid) task.executorId == recordId).IIF(1, 0);
+
+	public IntExpression inTime = ((sql_guid)task.executorId == recordId && task.finishedAt.sql_date().truncMinute() <= task.deadLine && task.deadLine != date.Min).IIF(1, 0);
+
 	[displayName "В срок"]
-	public DecimalExpression countInTime = (countExecutor != 0.0).IIF(100*((inTime+0.0)/countExecutor),0.0);
-	
+	public DecimalExpression countInTime = (countExecutor != .0).IIF(100 * ((inTime + .0) / countExecutor), .0);
+
 	countInTime.aggregation = Aggregation.None;
-	
-	groupBy = {name};
-	controls = {name,count,countCreator,countExecutor,countInTime};
-	columns = {name,count,countCreator,countExecutor,countInTime};
+
+	groupBy = { name };
+	controls = { name, count, countCreator, countExecutor, countInTime };
+	columns = { name, count, countCreator, countExecutor, countInTime };
 }
